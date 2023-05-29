@@ -1,83 +1,128 @@
 #include "monty.h"
 /**
  *  push - Adds a new node at the beginning of the stack
- *  @stack: The head of the stack
- *  @p: The value to adds on the stack
+ *  @doubly: The head of the stack
+ *  @cline: The value to adds on the stack
 */
-void push(stack_t **stack, unsigned int p)
+void _push(stack_t **doubly, unsigned int cline)
 {
-	stack_t *n_node = NULL;
+	int n, j;
 
-	n_node = malloc(sizeof(stack_t));
-	if (n_node == NULL)
-		handle_error(ERR_BAD_MALL, NULL, 0, NULL);
-	
-	n_node->n = p;
-	if (*stack)
+	if (!vglo.arg)
 	{
-		n_node->next = *stack;
-		n_node->prev = (*stack)->prev;
-		(*stack)->prev = n_node;
-		*stack = n_node;
-		return;
+		dprintf(2, "L%u: ", cline);
+		dprintf(2, "usage: push integer\n");
+		free_vglo();
+		exit(EXIT_FAILURE);
 	}
 
-	n_node->next = *stack;
-	n_node->prev = NULL;
-	*stack = n_node;
-}
-
-/**
-  * push_queue - Adds a new node at the end of the stack
-  * @stack: The head of the stack
-  * @p: The value to adds on the stack
-  */
-void push_queue(stack_t **stack, unsigned int p)
-{
-	stack_t *current = NULL, *new_node = NULL;
-
-	new_node = malloc(sizeof(stack_t));
-	if (new_node == NULL)
-		handle_error(ERR_BAD_MALL, NULL, 0, NULL);
-
-	new_node->n = p;
-	if (*stack)
+	for (j = 0; vglo.arg[j] != '\0'; j++)
 	{
-		current = *stack;
-		while (current->next != NULL)
-			current = current->next;
-
-		new_node->next = NULL;
-		new_node->prev = current;
-		current->next = new_node;
-		return;
+		if (!isdigit(vglo.arg[j]) && vglo.arg[j] != '-')
+		{
+			dprintf(2, "L%u: ", cline);
+			dprintf(2, "usage: push integer\n");
+			free_vglo();
+			exit(EXIT_FAILURE);
+		}
 	}
 
-	new_node->next = *stack;
-	new_node->prev = NULL;
-	*stack = new_node;
+	n = atoi(vglo.arg);
+
+	if (vglo.lifo == 1)
+		add_dnodeint(doubly, n);
+	else
+		add_dnodeint_end(doubly, n);
 }
 
 /**
  * pall - Prints all the values on the stack,
  * starting from the top of the stack.
- * @stack: The head of the stack
- * @line_number: The line on which the error occurred
- *
- * Return: Nothing
+ * @doubly: The head of the stack
+ * @cline: The line on which the error occurred
  */
-void pall(stack_t **stack, unsigned int line_number)
+void _pall(stack_t **doubly, unsigned int cline)
 {
 	stack_t *current = NULL;
-	(void) line_number;
+	(void) cline;
 
-	if (*stack)
+	if (*doubly)
 	{
-		current = *stack;
+		current = *doubly;
 		while (current != NULL)
 		{
 			printf("%d\n", current->n);
 			current = current->next;
 		}
 	}
+}
+
+/**
+ * _pint - prints the value at the top of the stack
+ * @doubly: head of the linked list
+ * @cline: line number
+ */
+void _pint(stack_t **doubly, unsigned int cline)
+{
+	(void)cline;
+
+	if (*doubly == NULL)
+	{
+		dprintf(2, "L%u: ", cline);
+		dprintf(2, "can't pint, stack empty\n");
+		free_vglo();
+		exit(EXIT_FAILURE);
+	}
+
+	printf("%d\n", (*doubly)->n);
+}
+
+/**
+ * _pop - removes the top element of the stack
+ * @doubly: head of the linked list
+ * @cline: line number
+ */
+void _pop(stack_t **doubly, unsigned int cline)
+{
+	stack_t *aux;
+
+	if (doubly == NULL || *doubly == NULL)
+	{
+		dprintf(2, "L%u: can't pop an empty stack\n", cline);
+		free_vglo();
+		exit(EXIT_FAILURE);
+	}
+	aux = *doubly;
+	*doubly = (*doubly)->next;
+	free(aux);
+}
+
+/**
+ * _swap - swaps the top two elements of the stack
+ * @doubly: head of the linked list
+ * @cline: line number
+ */
+void _swap(stack_t **doubly, unsigned int cline)
+{
+	int m = 0;
+	stack_t *aux = NULL;
+
+	aux = *doubly;
+
+	for (; aux != NULL; aux = aux->next, m++)
+		;
+
+	if (m < 2)
+	{
+		dprintf(2, "L%u: can't swap, stack too short\n", cline);
+		free_vglo();
+		exit(EXIT_FAILURE);
+	}
+
+	aux = *doubly;
+	*doubly = (*doubly)->next;
+	aux->next = (*doubly)->next;
+	aux->prev = *doubly;
+	(*doubly)->next = aux;
+	(*doubly)->prev = NULL;
 }
